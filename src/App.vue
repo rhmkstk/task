@@ -132,7 +132,58 @@ export default {
           date: null,
         },
       ],
+      products: [],
+      itemsPerPage: 10,
+      activePage: 1,
+      sortQuery: "name",
+      searchQuery: "",
     };
+  },
+  created() {
+    this.setProductCountOnPage();
+  },
+  methods: {
+    formatDate(pDate) {
+      let date = new Date(pDate * 1000);
+      const year = date.getFullYear();
+      const mount = date.getMonth();
+      const day = date.getDate();
+      return `${mount}/${day}/${year}`;
+    },
+    sortProducts() {
+      this.products = this.products.sort((a, b) =>
+        a[this.sortQuery] < b[this.sortQuery]
+          ? -1
+          : a[this.sortQuery] > b[this.sortQuery]
+          ? 1
+          : 0
+      );
+    },
+    setProductCountOnPage() {
+      this.products = this.data.slice(0, this.itemsPerPage);
+    },
+    changeActivePage() {
+      const end = this.itemsPerPage * this.activePage;
+      const start = end - this.itemsPerPage;
+      this.products = this.data.slice(start, end);
+    },
+  },
+  computed: {
+    totalPageCount() {
+      return Math.ceil(this.data.length / this.itemsPerPage);
+    },
+    searchedProduct() {
+      if (this.searchQuery) {
+        return this.products.filter((item) => {
+          return this.searchQuery
+            .toLowerCase()
+            .split(" ")
+            .every((n) => item.name.toLowerCase().includes(n));
+        });
+      } else {
+        return this.products;
+      }
+    },
   },
 };
 </script>
@@ -143,6 +194,7 @@ export default {
     <div class="content">
       <div class="find">
         <base-input
+          v-model="searchQuery"
           placeholder="Find a Product"
           style="width: 100%; margin-right: 8px"
         />
@@ -155,28 +207,59 @@ export default {
         />
         <base-button bg-color="#377364">Add Product</base-button>
       </div>
-      <div class="products">
-        <Product v-for="p in data" :key="p.name" :product="p" />
+      <div class="product-list">
+        <product
+          v-for="(product, index) in searchedProduct"
+          :key="index"
+          :name="product.name"
+          :image="product.image === '' ? undefined : product.image"
+          :status="product.status"
+          :date="
+            product.date === null ? product.date : formatDate(product.date)
+          "
+        />
       </div>
     </div>
     <div class="footer">
       <p>
-        page <span class="bold-text">1</span> of
-        <span class="bold-text">2</span>
+        page
+        <select
+          id="active-page"
+          name="active-page"
+          class="bold-text"
+          @change="changeActivePage"
+          v-model="activePage"
+        >
+          <option v-for="n in totalPageCount" :key="n" :value="n">
+            {{ n }}
+          </option>
+          totalPageCount</select
+        >of
+        <span class="bold-text">{{ totalPageCount }}</span>
       </p>
       <p>
         Sort by <span class="bold-text">Sort</span>
-        <select class="bold-text" name="sorting" id="product-sorting">
-          <option value="order">Order</option>
+        <select
+          id="product-sorting"
+          class="bold-text"
+          name="sorting"
+          v-model="sortQuery"
+          @change="sortProducts"
+        >
           <option value="name">Name</option>
-          <option value="status">Status</option>
+          <option value="date">Date</option>
         </select>
       </p>
-      <select class="bold-text" name="pagination" id="product-pagination">
+      <select
+        v-model="itemsPerPage"
+        id="product-pagination"
+        name="pagination"
+        class="bold-text"
+        @change="setProductCountOnPage"
+      >
         <option value="5">5</option>
-        <option value="5">10</option>
-        <option value="5">15</option>
-        <option value="5">20</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
       </select>
     </div>
   </div>
@@ -222,13 +305,13 @@ export default {
 select {
   background-color: transparent;
 }
-.products {
+.product-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-column-gap: 16px;
 }
 @media screen and (max-width: 768px) {
-  .products {
+  .product-list {
     display: grid;
     grid-template-columns: 1fr;
   }

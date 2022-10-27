@@ -2,27 +2,50 @@
 export default {
   name: "ProductComponent",
   props: {
-    product: {
-      type: Object,
-      default: () => {},
+    name: {
+      type: String,
+      default: "",
     },
+    image: {
+      type: String,
+      default: "https://picsum.photos/48",
+    },
+    date: {
+      type: [String, null],
+      default: null,
+    },
+    status: {
+      type: String,
+      default: "green",
+      validator: (val) => ["green", "red", "yellow"].includes(val),
+    },
+  },
+  data() {
+    return {
+      statusses: {
+        green: "#518103",
+        red: "#C63434",
+        yellow: "#E4D33A",
+      },
+    };
   },
 };
 </script>
 <template>
   <div class="product">
     <div class="product-infos">
-      <img class="product-image" :src="product.image" alt="product-image" />
-      <div class="product-status-badge"></div>
-      <p class="product-name product-text">{{ product.name }}</p>
+      <img class="product-image" :src="image" alt="product-image" />
+      <div
+        class="product-status-badge"
+        :style="`background-color: ${this.statusses[status]}`"
+      ></div>
+      <p class="product-name product-text">{{ name }}</p>
     </div>
-    <div>
-      <span class="product-date product-text">{{ product.date }}</span>
-      <select name="" id="">
-        <option value="">a</option>
-        <option value="">b</option>
-        <option value="">c</option>
-      </select>
+    <div class="product-infos">
+      <div class="product-date product-text" v-if="date !== null">
+        {{ date }}
+      </div>
+      <img src="../assets/icons/small-down.svg" alt="icon">
     </div>
   </div>
 </template>
@@ -48,8 +71,10 @@ export default {
   width: 9.33px;
   height: 9.33px;
   border-radius: 999px;
-  background-color: red;
   margin: 0 11.33px;
+}
+.product-date {
+  margin-right: 16px;
 }
 .product-name {
   max-width: 24ch;

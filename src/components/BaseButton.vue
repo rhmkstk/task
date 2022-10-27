@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "BaseInput",
+  name: "BaseButton",
   props: {
     bgColor: {
       type: String,
